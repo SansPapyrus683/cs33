@@ -143,5 +143,7 @@ NOTES:
  *   Rating: 3
  */
 int ezThreeFourths(int x) {
-  return 2;
+   int top = x + x + x;
+   int neg_case = top >> 31;
+   return (top + (neg_case & 3)) >> 2;
 }

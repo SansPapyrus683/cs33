@@ -145,6 +145,6 @@ NOTES:
  */
 int ezThreeFourths(int x) {
    int top = x + x + x;
-   int neg_case = top >> 31;
-   return (top + (neg_case & 3)) >> 2;
+   int negCase = top >> 31;
+   return (top + (negCase & 3)) >> 2;
 }

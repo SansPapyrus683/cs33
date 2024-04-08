@@ -204,7 +204,7 @@ int isEqual(int x, int y) {
 int fitsBits(int x, int n) {
   int oob_bits = x >> n;  // this had better be all 0's or all 1's
   int other = oob_bits + !!(oob_bits);
-  return !(~oob_bits - other);
+  return !(~oob_bits ^ other);
 }
 //5
 /* 

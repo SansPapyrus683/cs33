@@ -167,7 +167,7 @@ NOTES:
  *   Rating: 1
  */
 int isTmax(int x) {
-  return 2;
+  return x == (1 << 31) - 1;
 }
 //2
 /* 
@@ -177,7 +177,7 @@ int isTmax(int x) {
  *   Rating: 1
  */
 int evenBits(void) {
-  return 2;
+  return 0x55 + (0x55 << 8) + (0x55 << 16) + (0x55 << 24);
 }
 //3
 /* 
@@ -188,8 +188,9 @@ int evenBits(void) {
  *   Rating: 2
  */
 int isEqual(int x, int y) {
-  return 2;
+  return !(x ^ y);
 }
+
 //4
 /* 
  * fitsBits - return 1 if x can be represented as an 
@@ -201,6 +202,7 @@ int isEqual(int x, int y) {
  *   Rating: 2
  */
 int fitsBits(int x, int n) {
+  
   return 2;
 }
 //5
@@ -212,7 +214,9 @@ int fitsBits(int x, int n) {
  *   Rating: 3
  */
 int conditional(int x, int y, int z) {
-  return 2;
+  int yAnd = ~(!!x) + 1;
+  int zAnd = ~yAnd;
+  return (y & yAnd) + (z & zAnd);
 }
 //6
 /* 
@@ -223,6 +227,7 @@ int conditional(int x, int y, int z) {
  *   Rating: 3
  */
 int isGreater(int x, int y) {
+
   return 2;
 }
 //7
@@ -238,7 +243,9 @@ int isGreater(int x, int y) {
  *   Rating: 3
  */
 int multFiveEighths(int x) {
-  return 2;
+  int top = x + x + x + x + x;
+  int negCase = top >> 31;
+  return (top + (negCase & 7)) >> 3;
 }
 //8
 /* 
@@ -250,7 +257,7 @@ int multFiveEighths(int x) {
  *   Rating: 4 
  */
 int logicalNeg(int x) {
-  return 2;
+  return ((x >> 31) | ((~x + 1) >> 31)) + 1;
 }
 //9
 /* 
@@ -263,7 +270,9 @@ int logicalNeg(int x) {
  *   Rating: 4
  */
 int twosComp2SignMag(int x) {
-  return 2;
+  int mask = x >> 31;
+  int mag = (x ^ mask) + (~mask + 1);
+  return (x >> 31 << 31) + mag;
 }
 //10
 /*
@@ -275,5 +284,5 @@ int twosComp2SignMag(int x) {
  *   Rating: 4
  */
 int isPower2(int x) {
-  return 2;
+  return (!!x) & !(x & (x + ~0));
 }

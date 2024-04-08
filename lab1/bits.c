@@ -167,7 +167,7 @@ NOTES:
  *   Rating: 1
  */
 int isTmax(int x) {
-  return x == (1 << 31) - 1;
+  return !(~x + ~(x + 1) + 1);
 }
 //2
 /* 
@@ -284,5 +284,5 @@ int twosComp2SignMag(int x) {
  *   Rating: 4
  */
 int isPower2(int x) {
-  return (!!x) & !(x & (x + ~0));
+  return (!!x) & !(x >> 31) & !(x & (x + ~0));
 }

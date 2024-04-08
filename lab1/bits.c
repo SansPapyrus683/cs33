@@ -167,7 +167,7 @@ NOTES:
  *   Rating: 1
  */
 int isTmax(int x) {
-  return !(~x + ~(x + 1) + 1);
+  return !(~x ^ (x + 1)) & !!(x ^ ~0);
 }
 //2
 /* 
@@ -202,8 +202,9 @@ int isEqual(int x, int y) {
  *   Rating: 2
  */
 int fitsBits(int x, int n) {
-  
-  return 2;
+  int oob_bits = x >> n;  // this had better be all 0's or all 1's
+  int other = oob_bits + !!(oob_bits);
+  return !(~oob_bits - other);
 }
 //5
 /* 

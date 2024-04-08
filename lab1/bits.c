@@ -202,7 +202,7 @@ int isEqual(int x, int y) {
  *   Rating: 2
  */
 int fitsBits(int x, int n) {
-  int oobBits = x >> (n - 1);  // this had better be all 0's or all 1's
+  int oobBits = x >> (n + ~0);  // this had better be all 0's or all 1's
   return !(oobBits ^ 0) | !(oobBits ^ ~0);
 }
 //5
@@ -227,8 +227,10 @@ int conditional(int x, int y, int z) {
  *   Rating: 3
  */
 int isGreater(int x, int y) {
-  
-  return 2;
+  int xPos = !(x >> 31);
+  int yNeg = !!(y >> 31);
+  int diff = x + ~y + 1;
+  return (xPos & yNeg) | (!(diff >> 31) & !!diff & !(xPos ^ !yNeg));
 }
 //7
 /*

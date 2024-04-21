@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -O -Wall -m32
+CFLAGS = -O -Wall -m32 -fwrapv
 LIBS = -lm
 
 btest: btest.c bits.c decl.c tests.c btest.h bits.h

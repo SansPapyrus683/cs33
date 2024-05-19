@@ -16,19 +16,21 @@
  */
 void mean_pixel_parallel(const uint8_t img[][NUM_CHANNELS], int num_rows, int num_cols,
                          double mean[NUM_CHANNELS]) {
-    for (int ch = 0; ch < NUM_CHANNELS; ch++) {
+    int ch, row, col;
+
+    for (ch = 0; ch < NUM_CHANNELS; ch++) {
         mean[ch] = 0;
     }
-    for (int col = 0; col < num_cols; col++) {
-        for (int row = 0; row < num_rows; row++) {
-            for (int ch = 0; ch < NUM_CHANNELS; ch++) {
+    for (col = 0; col < num_cols; col++) {
+        for (row = 0; row < num_rows; row++) {
+            for (ch = 0; ch < NUM_CHANNELS; ch++) {
                 mean[ch] += img[row * num_cols + col][ch];
             }
         }
     }
 
     long count = num_rows * num_cols;
-    for (int ch = 0; ch < NUM_CHANNELS; ch++) {
+    for (ch = 0; ch < NUM_CHANNELS; ch++) {
         mean[ch] /= count;
     }
 }

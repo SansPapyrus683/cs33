@@ -18,21 +18,20 @@ void mean_pixel_parallel(const uint8_t img[][NUM_CHANNELS], int num_rows, int nu
                          double mean[NUM_CHANNELS]) {
     int ch, row, col;
 
-    for (ch = 0; ch < NUM_CHANNELS; ch++) {
-        mean[ch] = 0;
-    }
-    for (col = 0; col < num_cols; col++) {
-        for (row = 0; row < num_rows; row++) {
-            for (ch = 0; ch < NUM_CHANNELS; ch++) {
-                mean[ch] += img[row * num_cols + col][ch];
-            }
+    double r = 0, g = 0, b = 0;
+#pragma omp parallel for reduction(+:r, g, b) collapse(2)
+    for (row = 0; row < num_rows; row++) {
+        for (col = 0; col < num_cols; col++) {
+            r += img[row * num_cols + col][0];
+            g += img[row * num_cols + col][1];
+            b += img[row * num_cols + col][2];
         }
     }
 
     long count = num_rows * num_cols;
-    for (ch = 0; ch < NUM_CHANNELS; ch++) {
-        mean[ch] /= count;
-    }
+    mean[0] = r / count;
+    mean[1] = g / count;
+    mean[2] = b / count;
 }
 
 /*

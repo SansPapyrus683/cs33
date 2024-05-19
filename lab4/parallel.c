@@ -16,10 +16,10 @@
  */
 void mean_pixel_parallel(const uint8_t img[][NUM_CHANNELS], int num_rows, int num_cols,
                          double mean[NUM_CHANNELS]) {
-    int ch, row, col;
+    int row, col;
 
     double r = 0, g = 0, b = 0;
-#pragma omp parallel for reduction(+:r, g, b) collapse(2)
+#pragma omp parallel for reduction(+ : r, g, b) collapse(2)
     for (row = 0; row < num_rows; row++) {
         for (col = 0; col < num_cols; col++) {
             r += img[row * num_cols + col][0];
@@ -42,27 +42,31 @@ void grayscale_parallel(const uint8_t img[][NUM_CHANNELS], int num_rows, int num
                         uint32_t grayscale_img[][NUM_CHANNELS], uint8_t *max_gray,
                         uint32_t *max_count) {
     int row, col, ch, gray_ch;
-    *max_gray = 0;
-    *max_count = 0;
+    double tmp_max_gray = 0;
+    int tmp_max_count = 0;
 
-    for (col = 0; col < num_cols; col++) {
-        for (row = 0; row < num_rows; row++) {
+    for (row = 0; row < num_rows; row++) {
+        for (col = 0; col < num_cols; col++) {
             for (gray_ch = 0; gray_ch < NUM_CHANNELS; gray_ch++) {
-                grayscale_img[row * num_cols + col][gray_ch] = 0;
+                uint8_t curr = 0;
                 for (ch = 0; ch < NUM_CHANNELS; ch++) {
-                    grayscale_img[row * num_cols + col][gray_ch] +=
-                        img[row * num_cols + col][ch];
+                    curr += img[row * num_cols + col][ch];
                 }
-                grayscale_img[row * num_cols + col][gray_ch] /= NUM_CHANNELS;
-                if (grayscale_img[row * num_cols + col][gray_ch] == *max_gray) {
-                    (*max_count)++;
-                } else if (grayscale_img[row * num_cols + col][gray_ch] > *max_gray) {
-                    *max_gray = grayscale_img[row * num_cols + col][gray_ch];
-                    *max_count = 1;
+
+                curr /= NUM_CHANNELS;
+                if (curr == tmp_max_gray) {
+                    tmp_max_count++;
+                } else if (curr > tmp_max_gray) {
+                    tmp_max_gray = curr;
+                    tmp_max_count = 1;
                 }
+                grayscale_img[row * num_cols + col][gray_ch] = curr;
             }
         }
     }
+
+    *max_gray = tmp_max_gray;
+    *max_count = tmp_max_count;
 }
 
 /*

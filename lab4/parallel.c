@@ -42,31 +42,28 @@ void grayscale_parallel(const uint8_t img[][NUM_CHANNELS], int num_rows, int num
                         uint32_t grayscale_img[][NUM_CHANNELS], uint8_t *max_gray,
                         uint32_t *max_count) {
     int row, col, ch, gray_ch;
-    double tmp_max_gray = 0;
-    int tmp_max_count = 0;
 
+#pragma omp parallel for collapse(2)
     for (row = 0; row < num_rows; row++) {
         for (col = 0; col < num_cols; col++) {
-            for (gray_ch = 0; gray_ch < NUM_CHANNELS; gray_ch++) {
-                uint8_t curr = 0;
-                for (ch = 0; ch < NUM_CHANNELS; ch++) {
-                    curr += img[row * num_cols + col][ch];
-                }
+            uint32_t curr = 0;
+            for (ch = 0; ch < NUM_CHANNELS; ch++) {
+                curr += img[row * num_cols + col][ch];
+            }
+            curr /= NUM_CHANNELS;
 
-                curr /= NUM_CHANNELS;
-                if (curr == tmp_max_gray) {
-                    tmp_max_count++;
-                } else if (curr > tmp_max_gray) {
-                    tmp_max_gray = curr;
-                    tmp_max_count = 1;
-                }
+            for (gray_ch = 0; gray_ch < NUM_CHANNELS; gray_ch++) {
                 grayscale_img[row * num_cols + col][gray_ch] = curr;
+            }
+
+            if (curr == *max_gray) {
+                (*max_count) += 3;
+            } else if (curr > *max_gray) {
+                *max_gray = curr;
+                *max_count = 3;
             }
         }
     }
-
-    *max_gray = tmp_max_gray;
-    *max_count = tmp_max_count;
 }
 
 /*
@@ -90,20 +87,21 @@ void convolution_parallel(const uint8_t padded_img[][NUM_CHANNELS], int num_rows
     conv_rows = num_rows - kernel_size + 1;
     conv_cols = num_cols - kernel_size + 1;
 
-    // perform convolution
-    for (ch = 0; ch < NUM_CHANNELS; ch++) {
+#pragma omp parallel for collapse(3)
+    for (row = 0; row < conv_rows; row++) {
         for (col = 0; col < conv_cols; col++) {
-            for (row = 0; row < conv_rows; row++) {
-                convolved_img[row * conv_cols + col][ch] = 0;
-                for (kernel_col = 0; kernel_col < kernel_size; kernel_col++) {
-                    for (kernel_row = 0; kernel_row < kernel_size; kernel_row++) {
-                        convolved_img[row * conv_cols + col][ch] +=
-                            padded_img[(row + kernel_row) * num_cols + col + kernel_col]
-                                      [ch] *
-                            kernel[kernel_row * kernel_size + kernel_col];
+            for (ch = 0; ch < NUM_CHANNELS; ch++) {
+                uint32_t curr = 0;
+
+                for (kernel_row = 0; kernel_row < kernel_size; kernel_row++) {
+                    for (kernel_col = 0; kernel_col < kernel_size; kernel_col++) {
+                        curr += padded_img[(row + kernel_row) * num_cols + col +
+                                           kernel_col][ch] *
+                                kernel[kernel_row * kernel_size + kernel_col];
                     }
                 }
-                convolved_img[row * conv_cols + col][ch] /= kernel_norm;
+
+                convolved_img[row * conv_cols + col][ch] = curr / kernel_norm;
             }
         }
     }

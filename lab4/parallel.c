@@ -7,6 +7,7 @@
 
 #include <omp.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "utils.h"
 
@@ -41,29 +42,31 @@ void mean_pixel_parallel(const uint8_t img[][NUM_CHANNELS], int num_rows, int nu
 void grayscale_parallel(const uint8_t img[][NUM_CHANNELS], int num_rows, int num_cols,
                         uint32_t grayscale_img[][NUM_CHANNELS], uint8_t *max_gray,
                         uint32_t *max_count) {
-    int row, col, ch, gray_ch;
+    int row, col, ch;
 
-#pragma omp parallel for collapse(2)
+    uint32_t max = 0;
+    uint32_t max_occ[256];
+    for (int i = 0; i < 256; i++) {
+        max_occ[i] = 0;
+    }
+#pragma omp parallel for collapse(2) reduction(max : max) reduction(+ : max_occ)
     for (row = 0; row < num_rows; row++) {
         for (col = 0; col < num_cols; col++) {
-            uint32_t curr = 0;
-            for (ch = 0; ch < NUM_CHANNELS; ch++) {
-                curr += img[row * num_cols + col][ch];
-            }
-            curr /= NUM_CHANNELS;
+            uint32_t curr = (img[row * num_cols + col][0] + img[row * num_cols + col][1] + img[row * num_cols + col][2]) / 3;
 
-            for (gray_ch = 0; gray_ch < NUM_CHANNELS; gray_ch++) {
-                grayscale_img[row * num_cols + col][gray_ch] = curr;
-            }
+            grayscale_img[row * num_cols + col][0] = curr;
+            grayscale_img[row * num_cols + col][1] = curr;
+            grayscale_img[row * num_cols + col][2] = curr;
+            max_occ[curr] += 3;
 
-            if (curr == *max_gray) {
-                (*max_count) += 3;
-            } else if (curr > *max_gray) {
-                *max_gray = curr;
-                *max_count = 3;
+            if (curr > max) {
+                max = curr;
             }
         }
     }
+
+    *max_gray = max;
+    *max_count = max_occ[max];
 }
 
 /*

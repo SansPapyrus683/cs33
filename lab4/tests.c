@@ -144,7 +144,7 @@ double test_mean_pixel(const uint8_t img[][NUM_CHANNELS], int num_rows, int num_
 
     for (ch = 0; ch < NUM_CHANNELS; ch++)
     {
-        if (fabs(seqMean[ch] - parMean[ch]) > EPS)
+        if (fabs(seqMean[ch] - parMean[ch]) > EPS || isnan(parMean[ch]))
         {
             printf("Your phase 1 results are incorrect.\n");
             printf("The expected result was ");
